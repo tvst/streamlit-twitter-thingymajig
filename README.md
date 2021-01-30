@@ -4,7 +4,7 @@ A tweet analysis dashboard written in Streamlit!
 
 See it in action:
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://github.com/tvst/streamlit-twitter-thingymajig/blob/main/streamlit_app.py)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://share.streamlit.io/tvst/streamlit-twitter-thingymajig/main)
 
 # Trying this in your own machine
 
