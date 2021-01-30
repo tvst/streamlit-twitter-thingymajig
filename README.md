@@ -6,6 +6,8 @@ See it in action:
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://github.com/tvst/streamlit-twitter-thingymajig/blob/main/streamlit_app.py)
 
+# Trying this in your own machine
+
 To try it out, you first need to specify your Twitter API credentials:
 
 1. Create a subfolder _in this repo_, called `.streamlit`
