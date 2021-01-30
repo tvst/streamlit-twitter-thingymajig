@@ -2,7 +2,19 @@
 
 A tweet analysis dashboard written in Streamlit!
 
-To try it out, modify the `secrets.toml` file with your own Twitter API credentials. You can find
-your credentials in the [Twitter Developer Portal](https://developer.twitter.com/en/portal). In
-there, you should create or select an existing project + app, then go to the app's "Keys and Tokens"
-tab to generate your "Consumer Keys".
+To try it out, you first need to specify your Twitter API credentials:
+
+1. Create a subfolder _in this repo_, called `.streamlit`
+2. Create a file at `.streamlit/secrets.toml` file with the following body:
+   ```toml
+   [twitter]
+   # Enter your secrets here. See README.md for more info.
+   consumer_key = 'enter your credentials here'
+   consumer_secret = 'enter your credentials here'
+   ```
+3. Go to the [Twitter Developer Portal](https://developer.twitter.com/en/portal), create or select an existing project + app, then go to the app's "Keys and Tokens" tab to generate your "Consumer Keys".
+4. Copy and paste you key and secret into the file above.
+5. Now you can run you Streamlit app as usual:
+   ```
+   streamlit run streamlit_app.py
+   ```
