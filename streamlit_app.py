@@ -33,12 +33,11 @@ initial_setup()
 auth = tweepy.AppAuthHandler(**st.secrets["twitter"])
 twitter_api = tweepy.API(auth)
 
-state = st.beta_session_state(
+if "tweets" not in st.session_state:
     # These are all for debugging.
-    tweets=[],
-    curr_tweet_page=0,
-    curr_raw_tweet_page=0,
-)
+    st.session_state.tweets = []
+    st.session_state.curr_tweet_page = 0
+    st.session_state.curr_raw_tweet_page = 0
 
 
 # --------------------------------------------------------------------------------------------------
@@ -104,23 +103,23 @@ def display_tweet(tweet):
     }
     display_dict(parsed_tweet)
 
-def paginator(values, session_state, state_key, page_size):
-    curr_page = getattr(session_state, state_key)
+def paginator(values, state_key, page_size):
+    curr_page = getattr(st.session_state, state_key)
 
     a, b, c = st.beta_columns(3)
 
     def decrement_page():
-        curr_page = getattr(session_state, state_key)
+        curr_page = getattr(st.session_state, state_key)
         if curr_page > 0:
-            setattr(session_state, state_key, curr_page - 1)
+            setattr(st.session_state, state_key, curr_page - 1)
 
     def increment_page():
-        curr_page = getattr(session_state, state_key)
+        curr_page = getattr(st.session_state, state_key)
         if curr_page + 1 < len(values) // page_size:
-            setattr(session_state, state_key, curr_page + 1)
+            setattr(st.session_state, state_key, curr_page + 1)
 
     def set_page(new_value):
-        setattr(session_state, state_key, new_value - 1)
+        setattr(st.session_state, state_key, new_value - 1)
 
     a.write(" ")
     a.write(" ")
@@ -136,7 +135,7 @@ def paginator(values, session_state, state_key, page_size):
         curr_page,
         on_change=set_page)
 
-    curr_page = getattr(session_state, state_key)
+    curr_page = getattr(st.session_state, state_key)
 
     page_start = curr_page * page_size
     page_end = page_start + page_size
@@ -542,11 +541,11 @@ if st.checkbox("Show noun-phrase counts"):
     draw_count("Word count cut-off", results['nounphrase_counts'], 3)
 
 if st.checkbox("Show tweets"):
-    for result in paginator(tweets, state, "curr_tweet_page", 10):
+    for result in paginator(tweets, "curr_tweet_page", 10):
         display_tweet(result)
         "---"
 
 if st.checkbox("Show raw tweets"):
-    for result in paginator(tweets, state, "curr_raw_tweet_page", 1):
+    for result in paginator(tweets, "curr_raw_tweet_page", 1):
         display_dict(result.__dict__)
         "---"
