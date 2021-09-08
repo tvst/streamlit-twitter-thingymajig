@@ -9,7 +9,6 @@ import datetime
 import functools
 import pandas as pd
 import re
-import secrets_beta
 import streamlit as st
 import time
 import tweepy
@@ -90,7 +89,7 @@ def display_dial(title, value, color):
 
 def display_dict(dict):
     for k, v in dict.items():
-        a, b = st.beta_columns([1, 4])
+        a, b = st.columns([1, 4])
         a.write(f"**{k}:**")
         b.write(v)
 
@@ -106,7 +105,7 @@ def display_tweet(tweet):
 def paginator(values, state_key, page_size):
     curr_page = getattr(st.session_state, state_key)
 
-    a, b, c = st.beta_columns(3)
+    a, b, c = st.columns(3)
 
     def decrement_page():
         curr_page = getattr(st.session_state, state_key)
@@ -347,7 +346,7 @@ relative_dates = {
 search_params = {}
 search_params["query_terms"] = st.text_input("Search term", "streamlit")
 
-a, b = st.beta_columns([2, 1])
+a, b = st.columns([2, 1])
 selected_rel_date = a.selectbox("Search from date", list(relative_dates.keys()), 3)
 search_params["days_ago"] = relative_dates[selected_rel_date]
 search_params["limit"]    = b.number_input("Limit", 1, None, 10000)
@@ -360,7 +359,7 @@ if search_params["days_ago"] > 30:
             Twitter's Premium API</a>.
         """)
 
-a, b, c = st.beta_columns(3)
+a, b, c = st.columns(3)
 search_params["min_replies"]      = a.number_input("Minimum replies", 0, None, 0)
 search_params["min_retweets"]     = b.number_input("Minimum retweets", 0, None, 0)
 search_params["min_faves"]        = c.number_input("Minimum hearts", 0, None, 0)
@@ -402,7 +401,7 @@ sentiment_df = pd.DataFrame(results['sentiment_list'])
 polarity_color = COLOR_BLUE
 subjectivity_color = COLOR_CYAN
 
-a, b = st.beta_columns(2)
+a, b = st.columns(2)
 
 with a:
     display_dial("POLARITY", f"{sentiment_df['polarity'].mean():.2f}", polarity_color)
@@ -485,7 +484,7 @@ terms = pd.concat([
     results['nounphrase_counts'],
 ])
 
-a, b = st.beta_columns(2)
+a, b = st.columns(2)
 adjustment_factor = a.slider("Prioritize long expressions", 0.0, 1.0, 0.2, 0.001)
 # Default value picked heuristically.
 
