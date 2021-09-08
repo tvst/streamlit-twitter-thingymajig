@@ -347,7 +347,7 @@ search_params = {}
 search_params["query_terms"] = st.text_input("Search term", "streamlit")
 
 a, b = st.columns([2, 1])
-selected_rel_date = a.selectbox("Search from date", list(relative_dates.keys()), 3)
+selected_rel_date = a.selectbox("Search from date", list(relative_dates.keys()), 1)
 search_params["days_ago"] = relative_dates[selected_rel_date]
 search_params["limit"]    = b.number_input("Limit", 1, None, 10000)
 
@@ -363,8 +363,8 @@ a, b, c = st.columns(3)
 search_params["min_replies"]      = a.number_input("Minimum replies", 0, None, 0)
 search_params["min_retweets"]     = b.number_input("Minimum retweets", 0, None, 0)
 search_params["min_faves"]        = c.number_input("Minimum hearts", 0, None, 0)
-search_params["exclude_replies"]  = a.checkbox("Exclude replies", False)
-search_params["exclude_retweets"] = b.checkbox("Exclude retweets", False)
+search_params["exclude_replies"]  = a.checkbox("Exclude replies", True)
+search_params["exclude_retweets"] = b.checkbox("Exclude retweets", True)
 
 if not search_params["query_terms"]:
     st.stop()
