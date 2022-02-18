@@ -331,9 +331,6 @@ def rel_to_abs_date(days):
 # Tweet analysis thingymajig!!!
 """
 
-if st.button("Click me"):
-    st.balloons()
-
 relative_dates = {
     "1 day ago": 1,
     "1 week ago": 7,
