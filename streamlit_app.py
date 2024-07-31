@@ -15,6 +15,8 @@ import tweepy
 
 prev_time = [time.time()]
 
+st.set_page_config(page_title="Tweet analysis thingymajig", page_icon="🐦")
+
 
 # --------------------------------------------------------------------------------------------------
 # Setup
@@ -328,7 +330,7 @@ def rel_to_abs_date(days):
 # Draw app inputs
 
 """
-# Tweet analysis thingymajig!!!
+# 🐦 Tweet analysis thingymajig!!!
 """
 
 relative_dates = {
