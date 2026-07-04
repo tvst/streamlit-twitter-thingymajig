@@ -1,4 +1,5 @@
 from collections import defaultdict, namedtuple
+from types import SimpleNamespace
 from htbuilder import div, big, h2, styles
 from htbuilder.units import rem
 from math import floor
@@ -30,9 +31,6 @@ def initial_setup():
     nltk.download("stopwords")
 
 initial_setup()
-
-auth = tweepy.AppAuthHandler(**st.secrets["twitter"])
-twitter_api = tweepy.API(auth)
 
 if "tweets" not in st.session_state:
     # These are all for debugging.
@@ -148,6 +146,8 @@ def paginator(values, state_key, page_size):
 # Tweet-handling functions
 
 def get_tweet_url(tweet):
+    if getattr(tweet, "url", None):
+        return tweet.url
     return f"https://twitter.com/{tweet.user.screen_name}/status/{tweet.id_str}"
 
 STOP_WORDS_RE = re.compile(r"\b(?:" + "|".join(stopwords.words("english")) + r")\b", re.IGNORECASE)
@@ -218,6 +218,50 @@ cache_args = dict(
     }
 )
 
+
+@st.cache(allow_output_mutation=True, suppress_st_warning=True)
+def get_twitter_api():
+    auth = tweepy.AppAuthHandler(**st.secrets["twitter"])
+    return tweepy.API(auth)
+
+
+TEXT_COLUMNS = ("text", "tweet", "full_text", "content")
+
+
+def load_imported_tweets(uploaded_file):
+    imported = pd.read_csv(uploaded_file)
+    text_column = next((column for column in TEXT_COLUMNS if column in imported.columns), None)
+    if text_column is None:
+        st.error("CSV must include a text, tweet, full_text, or content column.")
+        st.stop()
+
+    user_column = next((column for column in ("author", "username", "screen_name") if column in imported.columns), None)
+    date_column = next((column for column in ("created_at", "date", "timestamp") if column in imported.columns), None)
+    url_column = next((column for column in ("url", "tweet_url") if column in imported.columns), None)
+
+    rows = imported[imported[text_column].notna()].copy()
+    if rows.empty:
+        st.error("CSV did not contain any tweet text.")
+        st.stop()
+
+    fallback_date = datetime.datetime.utcnow()
+    tweets = UncacheableList()
+    for index, row in rows.iterrows():
+        created_at = fallback_date
+        if date_column and pd.notna(row[date_column]):
+            created_at = pd.to_datetime(row[date_column]).to_pydatetime()
+        screen_name = str(row[user_column]) if user_column and pd.notna(row[user_column]) else "imported"
+        tweet_id = str(row.get("id", index))
+        tweets.append(SimpleNamespace(
+            text=str(row[text_column]),
+            created_at=created_at,
+            user=SimpleNamespace(screen_name=screen_name),
+            id_str=tweet_id,
+            url=str(row[url_column]) if url_column and pd.notna(row[url_column]) else None,
+        ))
+    return tweets
+
+
 @st.cache(ttl=60*60, **cache_args)
 def search_twitter(
         query_terms, days_ago, limit,
@@ -239,6 +283,7 @@ def search_twitter(
 
     query_str = " ".join(query_list)
 
+    twitter_api = get_twitter_api()
     tweets = UncacheableList(
         tweepy.Cursor(
             # TODO: Set up Premium search?
@@ -322,7 +367,7 @@ def get_counts(blobfield, key_sep):
 
 def rel_to_abs_date(days):
     if days == None:
-        return datetime.date(day=1, month=1, year=1970),
+        return datetime.date(day=1, month=1, year=1970)
     return datetime.date.today() - datetime.timedelta(days=days)
 
 
@@ -347,13 +392,14 @@ relative_dates = {
 
 search_params = {}
 search_params["query_terms"] = st.text_input("Search term", "streamlit")
+uploaded_file = st.file_uploader("Upload Xquik or tweet CSV", type=["csv"])
 
 a, b = st.columns([2, 1])
 selected_rel_date = a.selectbox("Search from date", list(relative_dates.keys()), 1)
 search_params["days_ago"] = relative_dates[selected_rel_date]
 search_params["limit"]    = b.number_input("Limit", 1, None, 10000)
 
-if search_params["days_ago"] > 30:
+if search_params["days_ago"] is not None and search_params["days_ago"] > 30:
     with a:
         display_small_text("""
             ⚠️ To go past 30 days you need to pay for
@@ -368,14 +414,17 @@ search_params["min_faves"]        = c.number_input("Minimum hearts", 0, None, 0)
 search_params["exclude_replies"]  = a.checkbox("Exclude replies", True)
 search_params["exclude_retweets"] = b.checkbox("Exclude retweets", True)
 
-if not search_params["query_terms"]:
+if uploaded_file is None and not search_params["query_terms"]:
     st.stop()
 
 
 # --------------------------------------------------------------------------------------------------
 # Run some numbers...
 
-tweets = search_twitter(**search_params)
+if uploaded_file is not None:
+    tweets = load_imported_tweets(uploaded_file)
+else:
+    tweets = search_twitter(**search_params)
 
 if not tweets:
     "No results"
@@ -410,7 +459,9 @@ with a:
 with b:
     display_dial("SUBJECTIVITY", f"{sentiment_df['subjectivity'].mean():.2f}", subjectivity_color)
 
-if search_params["days_ago"] <= 1:
+if uploaded_file is not None:
+    timeUnit = "yearmonthdate"
+elif search_params["days_ago"] <= 1:
     timeUnit = "hours"
 elif search_params["days_ago"] <= 30:
     timeUnit = "monthdate"
